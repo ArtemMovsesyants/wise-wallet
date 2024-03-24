@@ -12,7 +12,7 @@ public class DataSourceConfig {
 
     @Bean
     @ConfigurationProperties(prefix = "pg.datasource")
-    public DataSource pgDataSource(){
+    public DataSource pgDataSource() {
         return DataSourceBuilder.create().build();
     }
 
