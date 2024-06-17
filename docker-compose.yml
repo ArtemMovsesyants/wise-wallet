@@ -1,0 +1,27 @@
+services:
+  wise_wallet_db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: wise_wallet_pg
+      POSTGRES_PASSWORD: wise_wallet_pg
+      POSTGRES_DB: wise_wallet
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pg_wise_wallet:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  wise_wallet_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+      - "5005:5005"
+    depends_on:
+      - wise_wallet_db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://wise_wallet_db:5432/wise_wallet
+
+volumes:
+  pg_wise_wallet:

@@ -3,30 +3,40 @@ package ua.dp.amovsesyants.wisewallet.service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.time.Instant;
-import java.util.Base64;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 @Service
 public class JwtService {
-    private static final int TOKEN_VALIDITY_HOURS = 1;
-    private static final int SECONDS_PER_HOUR = 3600;
-    private static final int TOKEN_VALIDITY_SECONDS = TOKEN_VALIDITY_HOURS * SECONDS_PER_HOUR;
+    private static final long SECONDS_PER_MINUTE = 60L;
     private static final String ALGORITHM = "HmacSHA256";
 
     @Value("${secret.key}")
     private String secretKey;
 
+    @Value("${token.validity.minutes}")
+    private int tokenValidityMinutes;
+
+    public String generateToken(final UserDetails userDetails) {
+        HashMap<String, Object> claims = new HashMap<>();
+        List<String> authorities = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+        claims.put("authorities", authorities);
+
+        return generateToken(claims, userDetails);
+    }
+
     public String generateToken(final Map<String, ?> claims, final UserDetails userDetails) {
         Instant currentTime = Instant.now();
-        Instant expirationTime = currentTime.plusSeconds(TOKEN_VALIDITY_SECONDS);
+        Instant expirationTime = currentTime.plusSeconds(tokenValidityMinutes * SECONDS_PER_MINUTE);
 
         return Jwts
                 .builder()

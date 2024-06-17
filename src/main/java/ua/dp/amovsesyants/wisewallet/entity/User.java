@@ -2,6 +2,7 @@ package ua.dp.amovsesyants.wisewallet.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,8 +15,10 @@ import java.util.stream.Collectors;
 
 @Getter
 @Entity
+@NoArgsConstructor
 @Table(name = "users")
 public class User implements UserDetails {
+
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,14 +30,20 @@ public class User implements UserDetails {
     @Column(name = "password", nullable = false, updatable = false)
     private String password;
 
-    @OneToMany
+    @ManyToMany
     private Set<Role> roles;
+
+    public User(final String username, final String password, final Set<Role> roles) {
+        this.username = username;
+        this.password = password;
+        this.roles = roles;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return getRoles()
                 .stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName()))
+                .map(role -> new SimpleGrantedAuthority(role.getName().name()))
                 .collect(Collectors.toSet());
     }
 
